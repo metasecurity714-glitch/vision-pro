@@ -62,7 +62,7 @@
       </nav>
 
       <section id="scanPanel" class="panel active">
-        <div class="panel-heading"><div><h2>Mark attendance</h2><p class="muted">Recognise one enrolled face, then confirm the suggested match before attendance.</p></div><span class="status-pill"><span class="online-dot"></span> CAMERA READY WHEN STARTED</span></div>
+        <div class="panel-heading"><div><h2>Mark attendance</h2><p class="muted">Recognise one enrolled face; attendance is recorded after a stable five-scan match.</p></div><span class="status-pill"><span class="online-dot"></span> CAMERA READY WHEN STARTED</span></div>
         <div class="scan-grid">
           <div class="card camera-card">
             <div class="camera-head"><div><b>Live camera</b><small id="cameraState">Camera is off</small></div><span class="camera-indicator"><i></i> LIVE VIEW</span></div>
@@ -72,6 +72,11 @@
               <div id="cameraPlaceholder" class="camera-placeholder"><div class="camera-symbol">⌁</div><b>Your camera preview appears here</b><span>Use HTTPS and allow camera permission.</span></div>
               <div id="faceTag" class="face-tag hidden">● <span id="faceTagName">Face detected</span></div>
               <div id="faceCount" class="face-count">Waiting for camera</div>
+            </div>
+            <div class="camera-device-row">
+              <label for="cameraSelect">Camera device</label>
+              <div class="camera-device-controls"><select id="cameraSelect"><option value="">Default camera</option></select><button id="refreshCamerasBtn" class="btn btn-ghost">Refresh</button></div>
+              <p class="tiny-note">Choose an external USB/UVC webcam if your browser lists it. Android OTG camera visibility depends on the phone and browser.</p>
             </div>
             <div class="camera-actions"><button id="startCameraBtn" class="btn btn-primary">Start camera</button><button id="switchCameraBtn" class="btn btn-secondary" disabled>Switch camera</button><button id="stopCameraBtn" class="btn btn-ghost" disabled>Stop</button></div>
             <p id="cameraMsg" class="message" aria-live="polite">Camera access is requested only when you press Start camera.</p>
@@ -100,10 +105,11 @@
         <div class="card">
           <h3 id="studentFormTitle">Register a student</h3>
           <div class="form-grid">
-            <div><label for="regNo">Registration number</label><input id="regNo" placeholder="e.g. 24010101"></div>
+            <div><label for="regNo">Enrollment / registration number</label><input id="regNo" placeholder="e.g. 24010101"></div>
             <div><label for="rollNo">Roll number</label><input id="rollNo" placeholder="e.g. 01"></div>
             <div><label for="fullName">Full name</label><input id="fullName" placeholder="Student full name"></div>
             <div><label for="branch">Branch / department</label><input id="branch" placeholder="e.g. CSE"></div>
+            <div><label for="semester">Semester</label><select id="semester"><option value="">Select semester</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
           </div>
           <div class="face-enrol-box">
             <label for="facePhoto">Student face photo (required for recognition)</label>
@@ -116,14 +122,14 @@
           <p id="studentFormMsg" class="message" aria-live="polite"></p>
         </div>
         <div class="card table-card"><div class="table-toolbar"><div><h3>Registered students <span class="count-badge" id="studentCount">0</span></h3></div><input id="studentSearch" class="search-input" placeholder="Search name, roll or registration…"></div>
-          <div class="table-wrap"><table><thead><tr><th>Student</th><th>Registration no.</th><th>Roll no.</th><th>Branch</th><th>Actions</th></tr></thead><tbody id="studentsTable"><tr><td colspan="5" class="empty-cell">No students registered yet.</td></tr></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Student</th><th>Registration no.</th><th>Roll no.</th><th>Branch</th><th>Semester</th><th>Actions</th></tr></thead><tbody id="studentsTable"><tr><td colspan="6" class="empty-cell">No students registered yet.</td></tr></tbody></table></div>
         </div>
       </section>
 
       <section id="recordsPanel" class="panel">
         <div class="panel-heading"><div><h2>Attendance records</h2><p class="muted">Review sessions and export attendance as CSV.</p></div><button id="exportCsvBtn" class="btn btn-primary">↓ Export CSV</button></div>
         <div class="card"><div class="table-toolbar"><div><h3>Attendance history</h3></div><input id="recordSearch" class="search-input" placeholder="Search student, class or subject…"></div>
-          <div class="table-wrap"><table><thead><tr><th>Date & time</th><th>Student</th><th>Roll no.</th><th>Class</th><th>Subject</th><th>Status</th><th></th></tr></thead><tbody id="recordsTable"><tr><td colspan="7" class="empty-cell">No attendance records yet.</td></tr></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Date & time</th><th>Student</th><th>Roll no.</th><th>Semester</th><th>Class</th><th>Subject</th><th>Status</th><th></th></tr></thead><tbody id="recordsTable"><tr><td colspan="8" class="empty-cell">No attendance records yet.</td></tr></tbody></table></div>
         </div>
       </section>
 
@@ -131,11 +137,18 @@
         <div class="panel-heading"><div><h2>Settings & privacy</h2><p class="muted">Understand where your data lives and manage your workspace.</p></div></div>
         <div class="settings-grid">
           <div class="card"><h3>Storage & privacy</h3><p class="muted">ClassVision stores account, student and attendance data in IndexedDB in this browser. Data is not automatically synced to another phone or computer.</p><div class="privacy-line"><span>Student records</span><b>On this device</b></div><div class="privacy-line"><span>Camera frames</span><b>Processed in browser</b></div><div class="privacy-line"><span>Face templates</span><b>Stored locally in browser</b></div></div>
+          <div class="card"><h3>ESP32 attendance indicator</h3>
+            <p class="muted">Connect an ESP32 over Bluetooth Low Energy. When attendance is successfully saved, it can flash the green LED, beep and update the OLED.</p>
+            <div class="privacy-line"><span>Connection</span><b id="esp32Status">Not connected</b></div>
+            <button id="connectEsp32Btn" class="btn btn-secondary btn-full">Connect ESP32</button>
+            <button id="disconnectEsp32Btn" class="btn btn-ghost btn-full" disabled>Disconnect ESP32</button>
+            <p id="esp32Msg" class="message" aria-live="polite">Requires a BLE-capable ESP32 and a supported Chrome browser over HTTPS.</p>
+          </div>
           <div class="card"><h3>Workspace tools</h3><p class="muted">Export a backup of your records before clearing browser data or changing devices.</p><button id="backupBtn" class="btn btn-secondary btn-full">Download JSON backup</button><button id="restoreBtn" class="btn btn-secondary btn-full">Restore JSON backup</button><input id="restoreFile" type="file" accept="application/json" class="hidden"><button id="endSessionBtn" class="btn btn-ghost btn-full">End current session</button><button id="clearDataBtn" class="btn btn-danger btn-full">Delete all workspace data</button><p id="settingsMsg" class="message" aria-live="polite"></p></div>
         </div>
-        <div class="card disclaimer"><b>Important limitation</b><p>This is a client-side prototype for supervised classroom testing, not a secure institutional attendance platform. Browser storage can be cleared, local passwords do not provide server-grade account security, and records do not sync across devices. Always verify identity yourself before confirming attendance.</p></div>
+        <div class="card disclaimer"><b>Important limitation</b><p>This is a client-side prototype for supervised classroom testing, not a secure institutional attendance platform. Browser storage can be cleared, local passwords do not provide server-grade account security, and records do not sync across devices. Always review attendance history and provide a non-biometric alternative.</p></div>
       </section>
-      <footer class="app-footer">ClassVision · Local-first classroom attendance · <span id="versionText">v2.0</span></footer>
+      <footer class="app-footer">ClassVision · Local-first classroom attendance · <span id="versionText">v2.1</span></footer>
     </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
