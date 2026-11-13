@@ -85,11 +85,11 @@
             <div id="sessionStatus" class="session-status">No active session</div>
             <div class="divider"></div>
             <div class="step-label">STEP 02</div><h3>Verify student</h3>
-            <label for="studentSelect">Recognised student (you can change this after checking)</label><select id="studentSelect"><option value="">Register students first</option></select>
-            <div id="selectedStudentInfo" class="selected-info">No student selected.</div>
-            <label class="check-row"><input id="identityCheck" type="checkbox"><span>I checked the student's identity against the class list or student ID.</span></label>
+            <div id="selectedStudentInfo" class="selected-info">Waiting for face recognition. No manual student selection is needed.</div>
+            <select id="studentSelect" hidden aria-hidden="true" tabindex="-1"><option value="">No recognised student</option></select>
+            <label class="check-row"><input id="identityCheck" type="checkbox"><span>I verified the recognised student against the class list or student ID.</span></label>
             <button id="confirmAttendanceBtn" class="btn btn-success btn-full" disabled>✓ Confirm attendance</button>
-            <p class="tiny-note">Face matching is an assistive check, not proof of identity. Confirm the suggested student against the class list. Unknown or ambiguous faces are not auto-assigned.</p>
+            <p class="tiny-note">Face matching is an assistive check, not proof of identity. Confirm the automatically recognised student against the class list. Unknown or ambiguous faces are not auto-assigned.</p>
             <p id="attendanceMsg" class="message" aria-live="polite"></p>
           </div>
         </div>

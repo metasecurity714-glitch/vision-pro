@@ -1,47 +1,35 @@
 # ClassVision — Face Recognition Build
 
-A mobile-friendly, GitHub Pages-ready classroom attendance prototype.
+A browser-based classroom attendance prototype. It stores student records and face descriptors in IndexedDB on the current device/browser.
 
-## Features
-- Local teacher account creation, sign-in and logout
-- Student registration with registration number, roll number, name and branch
-- Face-photo enrollment during registration; only a 128-value face descriptor is retained, not the original photo
-- Live face detection and face-descriptor matching against enrolled students
-- Green box with the suggested student's name; unknown or ambiguous faces are labelled Unverified
-- Front/rear camera switching
-- Class and subject setup once per attendance session
-- Attendance confirmation is enabled only for a confident match to the selected student, with a teacher confirmation checkbox
-- Duplicate prevention for the same student, class, subject and date
-- Student search, edit and delete; attendance history, undo and CSV export
-- JSON backup and restore; IndexedDB local storage
-
-## Important privacy and accuracy limits
-Face templates are biometric data. Use this only with appropriate school approval and informed permission from each student and, where required, their parent or guardian. Do not enrol anyone who has not agreed. Templates are stored in this browser's IndexedDB and are **not encrypted by this prototype**. Anyone with access to the browser profile may be able to access local app data. JSON backups also contain face templates, so protect and delete backup files carefully. Deleting a student or clearing workspace data removes their stored template from this app.
-
-Face matching can produce false matches or fail to recognise a student. Lighting, camera quality, distance, angle and changes in appearance affect results. The displayed distance is a model comparison score, not a probability or proof of identity. An unverified or ambiguous face cannot be marked automatically. A teacher must still check the suggested identity; do not use this prototype as the sole basis for attendance, discipline or other important decisions.
-
-## Deploy on GitHub Pages
+## Deploy to a new GitHub repository
 1. Extract this ZIP.
-2. Upload `index.html`, `style.css`, `app.js` and `README.md` to the root of a new GitHub repository.
-3. Open **Settings → Pages**.
-4. Choose **Deploy from a branch**, select `main` and `/(root)`, then Save.
-5. Open the published HTTPS URL in Chrome.
-6. Create the local account, register students with a clear face photo and permission confirmation, start a class session, then start the camera.
+2. Upload the four files (`index.html`, `style.css`, `app.js`, `README.md`) from this folder to the repository root.
+3. In GitHub, open **Settings → Pages**.
+4. Select **Deploy from a branch**, choose `main` and `/(root)`, then Save.
+5. Open the GitHub Pages HTTPS URL in Chrome and allow camera permission.
 
-Camera access requires HTTPS (GitHub Pages provides HTTPS) or localhost. On Android Chrome, allow camera permission.
+## Face enrollment and scanning
+- Register each student with a clear, front-facing, well-lit photo containing only that student.
+- Older student records created before face enrollment must be edited and given a face photo.
+- Start a class/session, start the camera, and keep one face centred in good lighting.
+- The app compares the live face descriptor against saved enrollment descriptors. It shows a suggested name only when the best match is sufficiently close and separated from the next-best match.
+- A teacher must still verify the identity before confirming attendance. Unknown or ambiguous faces must not be marked present.
 
-## First use and connectivity
-The first face enrollment or camera start downloads the face-recognition library and model weights from jsDelivr. Internet access is required to load them. Face matching and camera processing happen in the browser; this app does not upload camera frames to a server.
+## Important limitations and privacy
+- This is an experimental, single-photo face-matching prototype, not a production biometric attendance system. Recognition varies with lighting, camera angle, distance, image quality, and changes in appearance. Test with consent before classroom use.
+- Get appropriate school approval and informed permission from students and, where required, parents/guardians before collecting face templates. Provide a non-biometric alternative.
+- Face descriptors are biometric data stored in this browser's IndexedDB. This prototype does not encrypt those descriptors or sync them to a secure school server. Do not use it for sensitive official records.
+- The face recognition library and model files load from jsDelivr, so an internet connection is needed when they are first loaded.
+- Camera access requires HTTPS (GitHub Pages provides HTTPS) and browser permission.
+- Local login is only a prototype access gate, not secure institutional authentication.
 
-## Storage and account limitations
-- Account, student, face-template and attendance data are stored locally in IndexedDB on the current browser/device.
-- There is no server, cloud sync, multi-device sharing or central administrator.
-- Clearing browser data may erase records; export backups carefully and keep them private.
-- The local account gate is a prototype, not institutional-grade authentication or access control.
-- Test with consent and supervised volunteers before any real classroom use.
+## Troubleshooting
+- If the camera starts but says **Unverified — no enrolled face**, edit each student and add a new face photo.
+- If it says **Unverified — closest: ...**, capture a sharper, front-facing enrollment photo in even lighting, then test with the student facing the camera at a similar distance.
+- If it says **Could not load face recognition library/models**, check internet access and reload the HTTPS site.
+- If you updated files but the old behavior remains, hard-refresh Chrome or clear the site's cached files (do not clear site data unless you have exported a backup; that can delete local student data).
 
-## Files
-- `index.html` — application layout
-- `style.css` — responsive dark UI
-- `app.js` — local storage, face recognition, camera, attendance and export logic
-- `README.md` — setup and limitations
+
+### Automatic identity selection update
+Attendance scanning now automatically selects the matched student from the face template. The teacher no longer chooses a student from a dropdown. The app displays the matched student details and still requires the teacher to verify the identity before confirming attendance. Unknown or ambiguous faces remain unverified.
