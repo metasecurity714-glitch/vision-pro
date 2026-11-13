@@ -13,11 +13,13 @@ A browser-based classroom attendance prototype. It stores student records and fa
 - Register each student with a clear, front-facing, well-lit photo containing only that student.
 - Older student records created before face enrollment must be edited and given a face photo.
 - Start a class/session, start the camera, and keep one face centred in good lighting.
-- The app compares the live face descriptor against saved enrollment descriptors. It shows a suggested name only when the best match is sufficiently close and separated from the next-best match.
-- A teacher must still verify the identity before confirming attendance. Unknown or ambiguous faces must not be marked present.
+- Live detection uses the SSD MobileNet face detector to better detect additional faces in the camera view.
+- Attendance is saved automatically only after the same student is the sole detected face and produces a sufficiently close, distinct match across five consecutive scans.
+- If zero faces, multiple faces, or an uncertain match is detected, attendance is paused. No student is selected manually and there is no separate Step 02 confirmation screen.
+- Automatic biometric matching can still make mistakes. A teacher should review the attendance history against the class list before treating it as an official record.
 
 ## Important limitations and privacy
-- This is an experimental, single-photo face-matching prototype, not a production biometric attendance system. Recognition varies with lighting, camera angle, distance, image quality, and changes in appearance. Test with consent before classroom use.
+- This is an experimental, single-photo face-matching prototype, not a production biometric attendance system. Five-frame consistency and multi-face rejection reduce some errors but cannot guarantee identity. Recognition varies with lighting, camera angle, distance, image quality, and changes in appearance. Test with consent and supervised review before classroom use.
 - Get appropriate school approval and informed permission from students and, where required, parents/guardians before collecting face templates. Provide a non-biometric alternative.
 - Face descriptors are biometric data stored in this browser's IndexedDB. This prototype does not encrypt those descriptors or sync them to a secure school server. Do not use it for sensitive official records.
 - The face recognition library and model files load from jsDelivr, so an internet connection is needed when they are first loaded.
