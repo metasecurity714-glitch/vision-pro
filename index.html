@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="ClassVision — simple, privacy-first classroom attendance.">
+  <title>ClassVision — Attendance</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="ambient"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="ClassVision home"><span class="brand-mark">CV</span><span>Class<span class="brand-light">Vision</span><small>SMART ATTENDANCE</small></span></a>
+    <div id="topUser" class="top-user hidden"><span class="online-dot"></span><span id="topUsername"></span><button id="logoutBtn" class="btn btn-ghost btn-small">Log out</button></div>
+  </header>
+
+  <main class="shell">
+    <section id="authView" class="auth-layout">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse"></span> CLASSROOM MANAGEMENT</div>
+        <h1>Attendance,<br><span class="gradient-text">made clearer.</span></h1>
+        <p>Register your class, verify students in front of the camera, and keep attendance organised — all in your browser.</p>
+        <div class="hero-points"><span>✓ No QR codes</span><span>✓ Front & rear camera</span><span>✓ CSV reports</span></div>
+        <div class="privacy-note"><span>🔒</span><span><b>Local-first privacy</b><br>Your records stay in this browser on this device. This is not a cloud account system.</span></div>
+      </div>
+      <div class="auth-card card">
+        <div class="auth-tabs"><button id="showLogin" class="auth-tab active">Sign in</button><button id="showRegister" class="auth-tab">Create account</button></div>
+        <div id="loginPanel">
+          <h2>Welcome back</h2><p class="muted">Sign in to your ClassVision workspace.</p>
+          <label for="loginUsername">Username</label><input id="loginUsername" autocomplete="username" placeholder="Enter username">
+          <label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password">
+          <button id="loginBtn" class="btn btn-primary btn-full">Sign in <span>→</span></button>
+          <p id="loginMsg" class="message" aria-live="polite"></p>
+        </div>
+        <div id="registerPanel" class="hidden">
+          <h2>Create workspace</h2><p class="muted">Set up a local teacher account.</p>
+          <label for="newUsername">Username</label><input id="newUsername" autocomplete="username" placeholder="At least 3 characters">
+          <label for="newPassword">Password</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+          <label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password">
+          <button id="registerBtn" class="btn btn-primary btn-full">Create account <span>→</span></button>
+          <p id="registerMsg" class="message" aria-live="polite"></p>
+        </div>
+        <p class="tiny-note">For classroom testing only. Local browser login is not secure authentication for sensitive institutional records.</p>
+      </div>
+    </section>
+
+    <section id="appView" class="hidden">
+      <div class="welcome-row"><div><div class="eyebrow">YOUR WORKSPACE</div><h1 class="page-title">Attendance dashboard</h1><p class="muted">Keep your class records simple and organised.</p></div><div class="date-chip" id="todayLabel"></div></div>
+      <div class="stats-grid">
+        <article class="stat-card"><div class="stat-icon blue">♙</div><div><span>Registered students</span><strong id="statStudents">0</strong></div></article>
+        <article class="stat-card"><div class="stat-icon green">✓</div><div><span>Present today</span><strong id="statPresent">0</strong></div></article>
+        <article class="stat-card"><div class="stat-icon purple">▤</div><div><span>Total records</span><strong id="statRecords">0</strong></div></article>
+      </div>
+
+      <nav class="main-tabs" aria-label="Main sections">
+        <button class="main-tab active" data-tab="scanPanel">◉ <span>Attendance</span></button>
+        <button class="main-tab" data-tab="studentsPanel">♙ <span>Students</span></button>
+        <button class="main-tab" data-tab="recordsPanel">▤ <span>Records</span></button>
+        <button class="main-tab" data-tab="settingsPanel">⚙ <span>Settings</span></button>
+      </nav>
+
+      <section id="scanPanel" class="panel active">
+        <div class="panel-heading"><div><h2>Mark attendance</h2><p class="muted">Detect one face, select the matching student, then confirm manually.</p></div><span class="status-pill"><span class="online-dot"></span> CAMERA READY WHEN STARTED</span></div>
+        <div class="scan-grid">
+          <div class="card camera-card">
+            <div class="camera-head"><div><b>Live camera</b><small id="cameraState">Camera is off</small></div><span class="camera-indicator"><i></i> LIVE VIEW</span></div>
+            <div class="camera-stage" id="cameraStage">
+              <video id="cameraVideo" autoplay muted playsinline></video>
+              <canvas id="overlayCanvas"></canvas>
+              <div id="cameraPlaceholder" class="camera-placeholder"><div class="camera-symbol">⌁</div><b>Your camera preview appears here</b><span>Use HTTPS and allow camera permission.</span></div>
+              <div id="faceTag" class="face-tag hidden">● <span id="faceTagName">Face detected</span></div>
+              <div id="faceCount" class="face-count">Waiting for camera</div>
+            </div>
+            <div class="camera-actions"><button id="startCameraBtn" class="btn btn-primary">Start camera</button><button id="switchCameraBtn" class="btn btn-secondary" disabled>Switch camera</button><button id="stopCameraBtn" class="btn btn-ghost" disabled>Stop</button></div>
+            <p id="cameraMsg" class="message" aria-live="polite">Camera access is requested only when you press Start camera.</p>
+          </div>
+          <div class="card verify-card">
+            <div class="step-label">STEP 01</div><h3>Set class & session</h3>
+            <p class="muted small">Enter this once before scanning. It stays active until you end the session.</p>
+            <label for="className">Class name</label><input id="className" placeholder="e.g. CSE — Section A">
+            <label for="sessionName">Subject / session</label><input id="sessionName" placeholder="e.g. Applied Chemistry">
+            <button id="beginSessionBtn" class="btn btn-secondary btn-full">Begin attendance session</button>
+            <div id="sessionStatus" class="session-status">No active session</div>
+            <div class="divider"></div>
+            <div class="step-label">STEP 02</div><h3>Verify student</h3>
+            <label for="studentSelect">Select the student you have verified</label><select id="studentSelect"><option value="">Register students first</option></select>
+            <div id="selectedStudentInfo" class="selected-info">No student selected.</div>
+            <label class="check-row"><input id="identityCheck" type="checkbox"><span>I checked the student's identity against the class list or student ID.</span></label>
+            <button id="confirmAttendanceBtn" class="btn btn-success btn-full" disabled>✓ Confirm attendance</button>
+            <p class="tiny-note">The camera detects face presence only. It does not recognise or identify anyone. The displayed name comes from your manual selection.</p>
+            <p id="attendanceMsg" class="message" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="studentsPanel" class="panel">
+        <div class="panel-heading"><div><h2>Student directory</h2><p class="muted">Add, search and manage your class list.</p></div></div>
+        <div class="card">
+          <h3 id="studentFormTitle">Register a student</h3>
+          <div class="form-grid">
+            <div><label for="regNo">Registration number</label><input id="regNo" placeholder="e.g. 24010101"></div>
+            <div><label for="rollNo">Roll number</label><input id="rollNo" placeholder="e.g. 01"></div>
+            <div><label for="fullName">Full name</label><input id="fullName" placeholder="Student full name"></div>
+            <div><label for="branch">Branch / department</label><input id="branch" placeholder="e.g. CSE"></div>
+          </div>
+          <div class="button-row"><button id="saveStudentBtn" class="btn btn-primary">Save student</button><button id="cancelEditBtn" class="btn btn-ghost hidden">Cancel edit</button></div>
+          <p id="studentFormMsg" class="message" aria-live="polite"></p>
+        </div>
+        <div class="card table-card"><div class="table-toolbar"><div><h3>Registered students <span class="count-badge" id="studentCount">0</span></h3></div><input id="studentSearch" class="search-input" placeholder="Search name, roll or registration…"></div>
+          <div class="table-wrap"><table><thead><tr><th>Student</th><th>Registration no.</th><th>Roll no.</th><th>Branch</th><th>Actions</th></tr></thead><tbody id="studentsTable"><tr><td colspan="5" class="empty-cell">No students registered yet.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="recordsPanel" class="panel">
+        <div class="panel-heading"><div><h2>Attendance records</h2><p class="muted">Review sessions and export attendance as CSV.</p></div><button id="exportCsvBtn" class="btn btn-primary">↓ Export CSV</button></div>
+        <div class="card"><div class="table-toolbar"><div><h3>Attendance history</h3></div><input id="recordSearch" class="search-input" placeholder="Search student, class or subject…"></div>
+          <div class="table-wrap"><table><thead><tr><th>Date & time</th><th>Student</th><th>Roll no.</th><th>Class</th><th>Subject</th><th>Status</th><th></th></tr></thead><tbody id="recordsTable"><tr><td colspan="7" class="empty-cell">No attendance records yet.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="settingsPanel" class="panel">
+        <div class="panel-heading"><div><h2>Settings & privacy</h2><p class="muted">Understand where your data lives and manage your workspace.</p></div></div>
+        <div class="settings-grid">
+          <div class="card"><h3>Storage & privacy</h3><p class="muted">ClassVision stores account, student and attendance data in IndexedDB in this browser. Data is not automatically synced to another phone or computer.</p><div class="privacy-line"><span>Student records</span><b>On this device</b></div><div class="privacy-line"><span>Camera frames</span><b>Processed in browser</b></div><div class="privacy-line"><span>Face recognition</span><b>Not used</b></div></div>
+          <div class="card"><h3>Workspace tools</h3><p class="muted">Export a backup of your records before clearing browser data or changing devices.</p><button id="backupBtn" class="btn btn-secondary btn-full">Download JSON backup</button><button id="restoreBtn" class="btn btn-secondary btn-full">Restore JSON backup</button><input id="restoreFile" type="file" accept="application/json" class="hidden"><button id="endSessionBtn" class="btn btn-ghost btn-full">End current session</button><button id="clearDataBtn" class="btn btn-danger btn-full">Delete all workspace data</button><p id="settingsMsg" class="message" aria-live="polite"></p></div>
+        </div>
+        <div class="card disclaimer"><b>Important limitation</b><p>This is a client-side prototype for supervised classroom testing, not a secure institutional attendance platform. Browser storage can be cleared, local passwords do not provide server-grade account security, and records do not sync across devices. Always verify identity yourself before confirming attendance.</p></div>
+      </section>
+      <footer class="app-footer">ClassVision · Local-first classroom attendance · <span id="versionText">v1.0</span></footer>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="confirmDialog"><form method="dialog" class="dialog-card"><h3 id="dialogTitle">Confirm action</h3><p id="dialogText">Are you sure?</p><div class="button-row"><button value="cancel" class="btn btn-ghost">Cancel</button><button id="dialogConfirm" value="confirm" class="btn btn-danger">Confirm</button></div></form></dialog>
+</body>
+</html>
