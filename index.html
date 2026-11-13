@@ -62,7 +62,7 @@
       </nav>
 
       <section id="scanPanel" class="panel active">
-        <div class="panel-heading"><div><h2>Mark attendance</h2><p class="muted">Detect one face, select the matching student, then confirm manually.</p></div><span class="status-pill"><span class="online-dot"></span> CAMERA READY WHEN STARTED</span></div>
+        <div class="panel-heading"><div><h2>Mark attendance</h2><p class="muted">Recognise one enrolled face, then confirm the suggested match before attendance.</p></div><span class="status-pill"><span class="online-dot"></span> CAMERA READY WHEN STARTED</span></div>
         <div class="scan-grid">
           <div class="card camera-card">
             <div class="camera-head"><div><b>Live camera</b><small id="cameraState">Camera is off</small></div><span class="camera-indicator"><i></i> LIVE VIEW</span></div>
@@ -85,11 +85,11 @@
             <div id="sessionStatus" class="session-status">No active session</div>
             <div class="divider"></div>
             <div class="step-label">STEP 02</div><h3>Verify student</h3>
-            <label for="studentSelect">Select the student you have verified</label><select id="studentSelect"><option value="">Register students first</option></select>
+            <label for="studentSelect">Recognised student (you can change this after checking)</label><select id="studentSelect"><option value="">Register students first</option></select>
             <div id="selectedStudentInfo" class="selected-info">No student selected.</div>
             <label class="check-row"><input id="identityCheck" type="checkbox"><span>I checked the student's identity against the class list or student ID.</span></label>
             <button id="confirmAttendanceBtn" class="btn btn-success btn-full" disabled>✓ Confirm attendance</button>
-            <p class="tiny-note">The camera detects face presence only. It does not recognise or identify anyone. The displayed name comes from your manual selection.</p>
+            <p class="tiny-note">Face matching is an assistive check, not proof of identity. Confirm the suggested student against the class list. Unknown or ambiguous faces are not auto-assigned.</p>
             <p id="attendanceMsg" class="message" aria-live="polite"></p>
           </div>
         </div>
@@ -104,6 +104,13 @@
             <div><label for="rollNo">Roll number</label><input id="rollNo" placeholder="e.g. 01"></div>
             <div><label for="fullName">Full name</label><input id="fullName" placeholder="Student full name"></div>
             <div><label for="branch">Branch / department</label><input id="branch" placeholder="e.g. CSE"></div>
+          </div>
+          <div class="face-enrol-box">
+            <label for="facePhoto">Student face photo (required for recognition)</label>
+            <input id="facePhoto" type="file" accept="image/*" capture="user">
+            <p class="tiny-note">Use a clear, front-facing photo of the student alone, with good lighting. The app extracts a face template in this browser and does not keep the uploaded photo.</p>
+            <label class="check-row"><input id="faceConsent" type="checkbox"><span>I have the student's permission to use this face template for classroom attendance.</span></label>
+            <p id="facePhotoStatus" class="message">No face photo selected.</p>
           </div>
           <div class="button-row"><button id="saveStudentBtn" class="btn btn-primary">Save student</button><button id="cancelEditBtn" class="btn btn-ghost hidden">Cancel edit</button></div>
           <p id="studentFormMsg" class="message" aria-live="polite"></p>
@@ -123,12 +130,12 @@
       <section id="settingsPanel" class="panel">
         <div class="panel-heading"><div><h2>Settings & privacy</h2><p class="muted">Understand where your data lives and manage your workspace.</p></div></div>
         <div class="settings-grid">
-          <div class="card"><h3>Storage & privacy</h3><p class="muted">ClassVision stores account, student and attendance data in IndexedDB in this browser. Data is not automatically synced to another phone or computer.</p><div class="privacy-line"><span>Student records</span><b>On this device</b></div><div class="privacy-line"><span>Camera frames</span><b>Processed in browser</b></div><div class="privacy-line"><span>Face recognition</span><b>Not used</b></div></div>
+          <div class="card"><h3>Storage & privacy</h3><p class="muted">ClassVision stores account, student and attendance data in IndexedDB in this browser. Data is not automatically synced to another phone or computer.</p><div class="privacy-line"><span>Student records</span><b>On this device</b></div><div class="privacy-line"><span>Camera frames</span><b>Processed in browser</b></div><div class="privacy-line"><span>Face templates</span><b>Stored locally in browser</b></div></div>
           <div class="card"><h3>Workspace tools</h3><p class="muted">Export a backup of your records before clearing browser data or changing devices.</p><button id="backupBtn" class="btn btn-secondary btn-full">Download JSON backup</button><button id="restoreBtn" class="btn btn-secondary btn-full">Restore JSON backup</button><input id="restoreFile" type="file" accept="application/json" class="hidden"><button id="endSessionBtn" class="btn btn-ghost btn-full">End current session</button><button id="clearDataBtn" class="btn btn-danger btn-full">Delete all workspace data</button><p id="settingsMsg" class="message" aria-live="polite"></p></div>
         </div>
         <div class="card disclaimer"><b>Important limitation</b><p>This is a client-side prototype for supervised classroom testing, not a secure institutional attendance platform. Browser storage can be cleared, local passwords do not provide server-grade account security, and records do not sync across devices. Always verify identity yourself before confirming attendance.</p></div>
       </section>
-      <footer class="app-footer">ClassVision · Local-first classroom attendance · <span id="versionText">v1.0</span></footer>
+      <footer class="app-footer">ClassVision · Local-first classroom attendance · <span id="versionText">v2.0</span></footer>
     </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
