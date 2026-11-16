@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClassVision BLE OLED Test</title>
+<style>
+body{font:16px system-ui;max-width:520px;margin:30px auto;padding:0 16px;background:#101827;color:#f5f7fb}
+main{background:#1c293b;padding:22px;border-radius:16px}
+input,button{box-sizing:border-box;width:100%;padding:13px;margin:8px 0;border-radius:9px;border:1px solid #52627a;font:inherit}
+input{background:#101827;color:white}button{background:#3977ed;color:white;border:0;font-weight:700}
+#status{white-space:pre-wrap;color:#b9d4ff;min-height:48px}
+small{color:#bdc7d6}
+</style>
+</head>
+<body><main>
+<h2>ClassVision · BLE OLED test</h2>
+<p><small>Use this page to test BLE/OLED transport with a teacher-entered, non-biometric test record.</small></p>
+<button id="connect">Connect ESP32</button>
+<label>Test student name</label><input id="name" value="Test Student" maxlength="30">
+<label>Test roll number</label><input id="roll" value="T-01" maxlength="15">
+<button id="send" disabled>Send test attendance to OLED</button>
+<p id="status">Not connected.</p>
+</main>
+<script>
+(() => {
+  const SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+  const RX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+  let device = null, characteristic = null, queue = Promise.resolve();
+  const status = document.getElementById('status');
+  const sendButton = document.getElementById('send');
+  const enc = new TextEncoder();
+
+  function write(bytes) {
+    queue = queue.then(async () => {
+      if (!characteristic) throw new Error('ESP32 is not connected.');
+      if (characteristic.writeValueWithResponse) await characteristic.writeValueWithResponse(bytes);
+      else if (characteristic.writeValueWithoutResponse) await characteristic.writeValueWithoutResponse(bytes);
+      else await characteristic.writeValue(bytes);
+    });
+    return queue;
+  }
+
+  async function sendMessage(message) {
+    const data = enc.encode(message);
+    await write(enc.encode('START'));
+    for (let i = 0; i < data.length; i += 18) {
+      const chunk = data.slice(i, i + 18);
+      const packet = new Uint8Array(chunk.length + 2);
+      packet[0] = 68; packet[1] = 124; // "D|"
+      packet.set(chunk, 2);
+      await write(packet);
+    }
+    await write(enc.encode('END'));
+  }
+
+  document.getElementById('connect').onclick = async () => {
+    try {
+      status.textContent = 'Choose ClassVision-ESP32…';
+      device = await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE]}]});
+      device.addEventListener('gattserverdisconnected', () => {
+        characteristic = null; sendButton.disabled = true; status.textContent = 'ESP32 disconnected.';
+      });
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService(SERVICE);
+      characteristic = await service.getCharacteristic(RX);
+      sendButton.disabled = false;
+      status.textContent = 'Connected. OLED should show BLE CONNECTED.';
+    } catch (e) {
+      status.textContent = 'Connection error: ' + (e.message || e);
+    }
+  };
+
+  sendButton.onclick = async () => {
+    try {
+      const name = document.getElementById('name').value.replace(/[|\r\n]/g,' ').trim().slice(0,30);
+      const roll = document.getElementById('roll').value.replace(/[|\r\n]/g,' ').trim().slice(0,15);
+      if (!name || !roll) throw new Error('Enter both name and roll number.');
+      await sendMessage('ATT|' + name + '|' + roll);
+      status.textContent = 'Sent successfully. Check the OLED.';
+    } catch (e) {
+      status.textContent = 'Send error: ' + (e.message || e);
+    }
+  };
+})();
+</script>
+</body></html>

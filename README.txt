@@ -1,33 +1,35 @@
-CLASSVISION ESP32 + WEBSITE BLE FILES
+CLASSVISION BLE + OLED TEST FIX
 
-Files:
+This ZIP is a standalone BLE/OLED transport test. It does not change or improve
+face recognition or automatic biometric matching.
+
+FILES
 1. ClassVision_ESP32.ino
-   Upload this sketch to the ESP32 DevKit V1 using Arduino IDE.
+   Upload this sketch to the ESP32. Keep only one .ino in the Arduino sketch folder.
+2. ble-oled-test.html
+   Open from a secure HTTPS page in a Web Bluetooth-capable Chrome browser.
 
-2. classvision-ble.js
-   Add this file to the root of the vision-pro GitHub repository.
-   In index.html, add this script tag after app.js:
-   <script src="classvision-ble.js" defer></script>
-
-Important:
-- Remove the old BLE connect/disconnect handlers from app.js to avoid duplicate click handlers.
-- Keep the existing HTML IDs:
-  connectEsp32Btn, disconnectEsp32Btn, esp32Status, esp32Msg.
-- After an approved non-biometric attendance verification, call:
-  window.ClassVisionBLE.sendAttendance(studentName, rollNumber);
-- Do not connect this to face-template matching or automatic face identification.
-- The ESP32 and website use the same service/characteristic UUIDs and packet protocol.
-
-Arduino IDE libraries:
-- Adafruit GFX Library
-- Adafruit SSD1306
-The ESP32 BLE libraries are included with the ESP32 Arduino board package.
-
-Wiring:
+WIRING
 OLED VCC -> 3V3
 OLED GND -> GND
-OLED SDA -> GPIO 21
-OLED SCL -> GPIO 22
-Green LED -> GPIO 25 (through suitable resistor)
-Red LED -> GPIO 26 (through suitable resistor)
-Buzzer signal -> GPIO 27
+OLED SDA -> GPIO21
+OLED SCL -> GPIO22
+Green LED -> GPIO25 through a suitable resistor
+Red LED -> GPIO26 through a suitable resistor
+Buzzer signal -> GPIO27
+
+ARDUINO LIBRARIES
+- Adafruit GFX Library
+- Adafruit SSD1306
+ESP32 board package supplies BLE libraries.
+
+TEST
+1. Upload ClassVision_ESP32.ino.
+2. Wait for OLED to show Ready / Waiting for BLE.
+3. Host ble-oled-test.html on HTTPS (for example, a temporary GitHub Pages test path).
+4. Open it in Chrome, tap Connect ESP32, and select ClassVision-ESP32.
+5. Enter a test name and roll, then tap Send test attendance to OLED.
+6. OLED should show the name, roll number and PRESENT.
+
+This verifies the BLE packet format separately from the attendance application.
+Only send records after an appropriate, non-biometric verification/approval step.
